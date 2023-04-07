@@ -1,7 +1,6 @@
 import { getCurrentExtension } from '@gnome-shell/misc/extensionUtils';
 
-import { Configuration } from '@github-manager/common';
-import { GitHubNotifications } from '@github-manager/core';
+import { GitHubManager } from '@github-manager/core';
 import { LogLevel, Logger } from '@github-manager/utils';
 import { initializeTranslations } from '@github-manager/utils/locale';
 
@@ -9,29 +8,33 @@ import { initializeTranslations } from '@github-manager/utils/locale';
 Logger.globalLoggingLevel = LogLevel.DEBUG;
 
 /**
- * Main Extension class.
+ * Extension entry point class.
  */
 class GitHubManagerExtension {
     private static readonly LOGGER: Logger = new Logger('GitHubManagerExtension');
 
-    private gitHubNotifications?: GitHubNotifications;
+    private gitHubManager?: GitHubManager;
 
     public enable(): void {
-        try {
-            GitHubManagerExtension.LOGGER.debug('Creating main extension logic');
-            this.gitHubNotifications = new GitHubNotifications(Configuration.getInstance());
+        if (this.gitHubManager !== undefined) {
+            return;
+        }
 
-            GitHubManagerExtension.LOGGER.debug('Starting extension');
-            this.gitHubNotifications.start();
+        try {
+            this.gitHubManager = new GitHubManager();
+            this.gitHubManager.start();
         } catch (err) {
             GitHubManagerExtension.LOGGER.error('Unexpected error while enabling extension', err);
         }
     }
 
     public disable(): void {
+        if (this.gitHubManager === undefined) {
+            return;
+        }
+
         try {
-            GitHubManagerExtension.LOGGER.debug('Stopping extension');
-            this.gitHubNotifications?.stop();
+            this.gitHubManager.stop();
         } catch (err) {
             GitHubManagerExtension.LOGGER.error('Unexpected error while stopping extension', err);
         }
